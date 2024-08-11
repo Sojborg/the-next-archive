@@ -1,19 +1,12 @@
 'use client'
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-
-type BookFormData = {
-  title: string;
-  author: string;
-  genre: string;
-  readingState: string;
-  notes: string[];
-};
+import { Book } from '../models/book';
 
 const readingStates = ['Not Started', 'In Progress', 'Finished'] as const;
 
 const Page = ({ onCancel }: { onCancel: () => void }) => {
-  const { register, handleSubmit } = useForm<BookFormData>();
+  const { register, handleSubmit } = useForm<Book>();
   const [notes, setNotes] = useState<string[]>([]);
 
   const addNote = () => {
@@ -32,7 +25,7 @@ const Page = ({ onCancel }: { onCancel: () => void }) => {
     setNotes(updatedNotes);
   };
 
-  const onSubmit = (data: BookFormData) => {
+  const onSubmit = (data: Book) => {
     const submitData = {
       ...data,
       notes,

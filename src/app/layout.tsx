@@ -27,6 +27,10 @@ export default function RootLayout({
             <Link href="/books" className="text-white text-lg font-semibold hover:text-gray-300">
               Archive
             </Link>
+
+            <Link href="/search" className="text-white text-lg font-semibold hover:text-gray-300">
+              Search
+            </Link>
           </nav>
         </header>
         <main className="max-w-screen-lg mx-auto">
