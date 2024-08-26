@@ -1,13 +1,33 @@
 'use client'
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Book } from '../models/book';
+import { useRouter } from 'next/navigation';
+import { useLocalStorage } from 'usehooks-ts';
 
 const readingStates = ['Not Started', 'In Progress', 'Finished'] as const;
 
-const Page = ({ onCancel }: { onCancel: () => void }) => {
-  const { register, handleSubmit } = useForm<Book>();
+
+const Page = ({ onCancel, params }: { onCancel: () => void, params: { slug: string } }) => {
+  const router = useRouter();
+  const { register, handleSubmit, setValue, watch } = useForm<Book>();
   const [notes, setNotes] = useState<string[]>([]);
+  const bookid = params.slug;  
+  const [books, setBooks] = useLocalStorage<Book[]>('books', []);
+
+  useEffect(() => {
+    if (bookid) {
+      const book = books.find((b: Book) => b.id === bookid);
+      if (book) {
+        setValue('title', book.title);
+        setValue('author', book.author);
+        setValue('genre', book.genre);
+        setValue('thumbnail', book.thumbnail);
+        setValue('readingState', book.readingState);
+        setNotes(book.notes || []);
+      }
+    }
+  }, [bookid, setValue]);
 
   const addNote = () => {
     setNotes([...notes, '']);
@@ -25,23 +45,54 @@ const Page = ({ onCancel }: { onCancel: () => void }) => {
     setNotes(updatedNotes);
   };
 
+
   const onSubmit = (data: Book) => {
+
     const submitData = {
       ...data,
       notes,
     };
 
-    // Add the book data to a list in local storage
-    const savedBooks = JSON.parse(localStorage.getItem('books') || '[]');
-    savedBooks.push(submitData);
-    localStorage.setItem('books', JSON.stringify(savedBooks));
-
-    // Handle form submission logic here
+    const existingBookIndex = books.findIndex((b: Book) => b.id === bookid);
+    if (existingBookIndex !== -1) {
+      books[existingBookIndex] = {
+        ...data,
+        id: bookid,
+        notes,
+      };
+    } else {
+      books.push({
+        ...data,
+        id: bookid,
+        notes,
+      });
+    }
+    setBooks(books);
     console.log(submitData);
+    router.push('/books');
   };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="mt-4">
+      <div className="mb-4">
+        <label htmlFor="thumbnail" className="block font-medium mb-2">
+          Thumbnail
+        </label>
+        <input
+          type="file"
+          id="thumbnail"
+          {...register('thumbnail')}
+          className="border border-gray-300 rounded px-3 py-2 w-full text-black"
+        />
+        {watch('thumbnail') && (
+          <img
+            src={watch('thumbnail')}
+            alt="Book Thumbnail"
+            className="mt-2"
+            style={{ maxWidth: '200px' }}
+          />
+        )}
+      </div>
       <div className="mb-4">
         <label htmlFor="title" className="block font-medium mb-2">
           Title
@@ -77,6 +128,8 @@ const Page = ({ onCancel }: { onCancel: () => void }) => {
           className="border border-gray-300 rounded px-3 py-2 w-full text-black"
         />
       </div>
+
+      
 
       <div className="mb-4">
         <label htmlFor="readingState" className="block font-medium mb-2">
@@ -137,7 +190,7 @@ const Page = ({ onCancel }: { onCancel: () => void }) => {
           type="submit"
           className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
         >
-          Create Book
+          {!!bookid ? 'Create Book' : 'Update Book'}
         </button>
       </div>
     </form>

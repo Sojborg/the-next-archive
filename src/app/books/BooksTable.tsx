@@ -15,6 +15,7 @@ import {
 } from '@tanstack/react-table'
 import { Book } from './models/book'
 import { FaFileImage } from 'react-icons/fa';
+import { useLocalStorage } from 'usehooks-ts';
 
 export const BooksTable = () => {
 
@@ -55,10 +56,7 @@ export const BooksTable = () => {
     }
   ], []);
 
-  const [data, setData] = React.useState<Book[]>(() => {
-    const storedData = localStorage.getItem('books');
-    return storedData ? JSON.parse(storedData) : [];
-  });
+  const [data] = useLocalStorage<Book[]>('books', []);
 
   return (
     <MyTable
